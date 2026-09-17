@@ -1,6 +1,6 @@
 {
   "name": "lipra-transports",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Optional console and stream transports for lipra.",
   "type": "module",
   "main": "./dist/index.js",
@@ -15,7 +15,8 @@
   },
   "files": [
     "dist",
-    "README.md"
+    "README.md",
+    "lipra.png"
   ],
   "publishConfig": {
     "access": "public",
@@ -26,7 +27,7 @@
     "dev": "tsup src/index.ts --format esm,cjs --dts --watch",
     "lint": "tsc --noEmit",
     "test": "jest --runInBand",
-    "prepack": "pnpm run build"
+    "prepack": "cp ../../lipra.png ./lipra.png && pnpm run build"
   },
   "dependencies": {
     "lipra": "workspace:*"
