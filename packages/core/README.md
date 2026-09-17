@@ -14,14 +14,16 @@ lipra fills the gap between plain `console.log` and heavy production loggers. It
 
 ## Features
 
-- leveled logging: `trace`, `debug`, `info`, `warn`, `error`, `fatal`
-- pretty console output in TTY terminals
-- JSON output when stdout is not a TTY
-- child loggers with a `scope`
+- leveled logging: `trace`, `debug`, `info`, `warn`, `error`, `fatal` — filtered by `level`
+- pretty, colored console output in TTY terminals; JSON when stdout is not a TTY; respects `NO_COLOR` / `FORCE_COLOR`
+- pluggable transports (`ConsoleTransport`, `FileTransport`, `StreamTransport`), a `Logger` can write to several at once
+- child loggers with a `scope` and persistent bound `fields`, with optional `level`/`format`/`transports` overrides
 - structured error serialization
 - async context helpers
-- redaction helpers
-- ESM and CJS-friendly package output
+- redaction helpers, including array indices and wildcards, plus an auto-redacting `redactFields` wrapper
+- a `withSpinner` helper that logs task outcome/duration
+- Express/Fastify integrations as subpath exports (`lipra/express`, `lipra/fastify`)
+- ESM and CJS-friendly package output, including a working `require('lipra')`
 
 ## Installation
 
@@ -116,10 +118,8 @@ logger.info(record.msg, record.fields);
 
 ## Roadmap
 
-- spinner-aware terminal rendering
-- file and stream transports
 - richer structured formatting controls
-- framework integrations for Express and Fastify
+- animated (non-stub) terminal spinner rendering
 
 ## License
 

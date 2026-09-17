@@ -1,6 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 
-import { createLogRecord, serializeError, serializeErrorObject } from '../src/index';
+import { createLogRecord, serializeError } from '../src/index';
 
 describe('log records', () => {
   it('creates a record with optional metadata and serialized errors', () => {
@@ -31,13 +31,13 @@ describe('log records', () => {
       code: 'E_CONN',
     });
     expect(serializeError(null)).toEqual({ message: 'null' });
-    expect(serializeErrorObject(404)).toEqual({ message: '404' });
+    expect(serializeError(404)).toEqual({ message: '404' });
   });
 
-  it('preserves error details in object serialization', () => {
+  it('preserves the error name and cause in serialization', () => {
     const error = new Error('timeout', { cause: 'upstream' });
 
-    expect(serializeErrorObject(error)).toMatchObject({
+    expect(serializeError(error)).toMatchObject({
       name: 'Error',
       message: 'timeout',
       cause: 'upstream',

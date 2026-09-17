@@ -10,6 +10,7 @@ export function getContext(): Record<string, unknown> {
   return storage.getStore() ?? {};
 }
 
+/** @deprecated Use `runWithContext` instead. Kept only for backward compatibility. */
 export function withContext<T>(context: Record<string, unknown>, fn: () => T): T {
   return runWithContext(context, fn);
 }

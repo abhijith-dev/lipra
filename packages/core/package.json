@@ -1,6 +1,6 @@
 {
   "name": "lipra",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "A human-friendly structured logger for Node.js apps, CLIs, and services with pretty dev output and JSON production output.",
   "keywords": [
     "logger",
@@ -15,14 +15,24 @@
     "debugging"
   ],
   "type": "module",
-  "main": "./dist/index.js",
+  "main": "./dist/index.cjs",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js",
-      "require": "./dist/index.js"
+      "require": "./dist/index.cjs"
+    },
+    "./express": {
+      "types": "./dist/integrations/express.d.ts",
+      "import": "./dist/integrations/express.js",
+      "require": "./dist/integrations/express.cjs"
+    },
+    "./fastify": {
+      "types": "./dist/integrations/fastify.d.ts",
+      "import": "./dist/integrations/fastify.js",
+      "require": "./dist/integrations/fastify.cjs"
     }
   },
   "files": [
@@ -34,10 +44,11 @@
     "registry": "https://registry.npmjs.org/"
   },
   "scripts": {
-    "build": "tsup src/index.ts --format esm,cjs --dts --clean",
-    "dev": "tsup src/index.ts --format esm,cjs --dts --watch",
+    "build": "tsup src/index.ts src/integrations/express.ts src/integrations/fastify.ts --format esm,cjs --dts --clean",
+    "dev": "tsup src/index.ts src/integrations/express.ts src/integrations/fastify.ts --format esm,cjs --dts --watch",
     "lint": "tsc --noEmit",
     "test": "jest --runInBand",
+    "pretest": "pnpm run build",
     "prepack": "pnpm run build"
   },
   "devDependencies": {

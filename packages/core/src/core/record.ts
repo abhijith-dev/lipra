@@ -1,6 +1,16 @@
 export type LogLevel = 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'fatal';
 
+export const LEVEL_WEIGHT: Record<LogLevel, number> = {
+  trace: 10,
+  debug: 20,
+  info: 30,
+  warn: 40,
+  error: 50,
+  fatal: 60,
+};
+
 export interface LogErrorRecord {
+  name?: string;
   message: string;
   stack?: string;
   cause?: unknown;
@@ -42,6 +52,7 @@ export function createLogRecord(input: LogRecordInput): LogRecord {
 export function serializeError(err: unknown): LogErrorRecord {
   if (err instanceof Error) {
     return {
+      name: err.name,
       message: err.message,
       stack: err.stack,
       cause: err.cause,

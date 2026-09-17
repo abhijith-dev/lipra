@@ -2,9 +2,11 @@ import { describe, expect, it, jest } from '@jest/globals';
 
 import {
   ConsoleTransport,
+  Logger,
   getContext,
   jsonFormat,
   prettyFormat,
+  redactFields,
   redactValue,
   runWithContext,
   withContext,
@@ -42,6 +44,48 @@ describe('context and redaction', () => {
     });
     expect(input.credentials.password).toBe('secret');
     expect(input.token).toBe('token-value');
+  });
+
+  it('redacts array indices and wildcard segments', () => {
+    const input = {
+      users: [
+        { name: 'a', password: 'pw-a' },
+        { name: 'b', password: 'pw-b' },
+      ],
+    };
+
+    expect(redactValue(input, ['users.0.password'])).toEqual({
+      users: [
+        { name: 'a', password: '[REDACTED]' },
+        { name: 'b', password: 'pw-b' },
+      ],
+    });
+
+    expect(redactValue(input, ['users.*.password'])).toEqual({
+      users: [
+        { name: 'a', password: '[REDACTED]' },
+        { name: 'b', password: '[REDACTED]' },
+      ],
+    });
+  });
+
+  it('redactFields wraps a logger to auto-redact fields on every call', () => {
+    const write = jest.spyOn(process.stdout, 'write').mockImplementation(() => true);
+    const base = new Logger({ format: 'json' });
+    const safe = redactFields(base, ['password']);
+
+    safe.info('login attempt', { user: 'abc', password: 'secret' });
+
+    const parsed = JSON.parse(String(write.mock.calls[0]?.[0]));
+    expect(parsed.fields).toEqual({ user: 'abc', password: '[REDACTED]' });
+
+    const child = safe.child({ module: 'auth' });
+    child.warn('retrying', { password: 'still-secret' });
+    const childParsed = JSON.parse(String(write.mock.calls[1]?.[0]));
+    expect(childParsed.fields.password).toBe('[REDACTED]');
+    expect(childParsed.scope).toBe('auth');
+
+    write.mockRestore();
   });
 });
 
