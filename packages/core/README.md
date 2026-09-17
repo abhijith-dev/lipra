@@ -1,7 +1,7 @@
 # lipra
 
 <p align="center">
-  <img src="./lipra.png" alt="Lipra logo" width="360" />
+  <img src="https://raw.githubusercontent.com/abhijith-dev/lipra/main/packages/core/lipra.png" alt="Lipra logo" width="360" />
 </p>
 
 A small, structured logger for Node.js services, CLIs, and backend apps. `lipra` gives you readable colored logs in development and clean JSON records in production and CI.

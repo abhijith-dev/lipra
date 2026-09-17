@@ -8,3 +8,4 @@ coverage
 .npmrc
 ./packages/core/dist
 ./packages/core/node_modules
+push-deploy.sh

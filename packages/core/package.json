@@ -1,7 +1,12 @@
 {
   "name": "lipra",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "A human-friendly structured logger for Node.js apps, CLIs, and services with pretty dev output and JSON production output.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/abhijith-dev/lipra.git",
+    "directory": "packages/core"
+  },
   "keywords": [
     "logger",
     "logging",

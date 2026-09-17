@@ -1,7 +1,7 @@
 # lipra-transports
 
 <p align="center">
-  <img src="./lipra.png" alt="Lipra logo" width="360" />
+  <img src="https://raw.githubusercontent.com/abhijith-dev/lipra/main/packages/transports/lipra.png" alt="Lipra logo" width="360" />
 </p>
 
 Optional output transports for [`lipra`](https://www.npmjs.com/package/lipra).

@@ -1,7 +1,12 @@
 {
   "name": "lipra-transports",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "Optional console and stream transports for lipra.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/abhijith-dev/lipra.git",
+    "directory": "packages/transports"
+  },
   "type": "module",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
