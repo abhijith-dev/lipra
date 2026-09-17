@@ -1,22 +1,34 @@
 # lipra
 
-A small, structured logger for Node.js services and CLIs. `lipra` produces colored, readable terminal output during local development and JSON records in non-interactive environments.
+<p align="center">
+  <img src="./lipra.png" alt="Lipra logo" width="360" />
+</p>
+
+A small, structured logger for Node.js services, CLIs, and backend apps. `lipra` gives you readable colored logs in development and clean JSON records in production and CI.
+
+## Why developers pick lipra
+
+- friendly terminal output for local debugging
+- structured records for log aggregation and monitoring
+- simple API with child loggers, context, and redaction
+- zero-friction Express and Fastify integration
+- ESM and CJS support in the same package
+- production-safe output without extra setup
 
 ## Features
 
-- leveled logging: `trace`, `debug`, `info`, `warn`, `error`, `fatal` — records below the configured `level` are dropped
-- pretty, colored console output in TTY terminals (per-level colors via `picocolors`); plain JSON in non-TTY/CI, and respects `NO_COLOR` / `FORCE_COLOR`
-- JSON output when stdout is not a TTY
-- a pluggable `Transport` system: `ConsoleTransport` (default), `FileTransport`, `StreamTransport`, each with an optional independent `minLevel`
-- a single `Logger` can fan out to multiple transports at once (e.g. console + file)
-- child loggers with a `scope` and persistent bound `fields`, optionally overriding `level`/`format`/`transports`
-- structured error serialization (`serializeError`), including `name`, `message`, `stack`, `cause`
-- async context helpers (`runWithContext` / `getContext`)
-- redaction helpers, including array indices and wildcard segments (`redactValue`), and an auto-redacting logger wrapper (`redactFields`)
-- a spinner helper (`withSpinner`) that logs task outcome and duration, auto-disabled off a TTY
-- Express and Fastify integrations, published as dependency-free subpath exports (`lipra/express`, `lipra/fastify`)
-- ESM and CJS package output, including a working `require('lipra')` entry point
-- optional standalone `lipra-transports` package for consumers that build/forward `LogRecord`s themselves
+- leveled logging: `trace`, `debug`, `info`, `warn`, `error`, `fatal`
+- pretty colored output in TTY terminals and JSON output when stdout is not a TTY
+- `auto`, `pretty`, and `json` modes
+- configurable transports: `ConsoleTransport`, `FileTransport`, and `StreamTransport`
+- multiple transports per logger instance
+- child loggers with scoped metadata and overrides
+- async context propagation with `runWithContext` and `getContext`
+- structured error serialization with stack traces and `cause`
+- redaction helpers for secrets and PII
+- terminal spinner support for long-running tasks
+- framework integrations for Express and Fastify
+- strict TypeScript support and dual package output
 
 ## Installation
 
@@ -38,13 +50,13 @@ logger.warn('Cache miss', { key: 'user:42' });
 logger.error('Database failed', { service: 'api', tenant: 'acme' });
 ```
 
-In a TTY, the default `auto` format produces colored output similar to:
+### Example output in development
 
 ```txt
 16:20:34 INFO [auth] User login ok {"userId":"abc123"}
 ```
 
-When stdout is not a TTY, `auto` produces one JSON record per line:
+### Example output in JSON mode
 
 ```json
 {"time":"2026-09-16T16:20:34.123Z","level":"info","msg":"Server starting","fields":{"port":3000}}
@@ -58,7 +70,7 @@ When stdout is not a TTY, `auto` produces one JSON record per line:
 import { logger } from 'lipra';
 ```
 
-### Methods
+### Logging methods
 
 ```ts
 logger.trace('trace message', { foo: 'bar' });
@@ -70,11 +82,9 @@ logger.error(new Error('db down'));
 logger.fatal('process crashed', { exitCode: 1 });
 ```
 
-All methods accept a message and optional structured fields. `error` also accepts an `Error`; its name, message, stack, and cause are serialized into the log record.
-
 ### Level filtering
 
-`Logger` compares each record's level weight (`trace < debug < info < warn < error < fatal`) against `this.level` and skips emitting anything below it.
+`Logger` compares each record's level weight against the configured threshold and drops lower-priority records.
 
 ```ts
 import { Logger } from 'lipra';
@@ -82,6 +92,12 @@ import { Logger } from 'lipra';
 const appLogger = new Logger({ level: 'warn' });
 appLogger.info('this is suppressed');
 appLogger.warn('this is emitted');
+```
+
+The order is:
+
+```txt
+trace < debug < info < warn < error < fatal
 ```
 
 ### Child logger
@@ -93,7 +109,7 @@ const authLogger = logger.child({ module: 'auth' });
 authLogger.info('User login ok', { userId: 'abc123' });
 ```
 
-`child()` merges the bindings into the parent's persistent `fields` (attached to every subsequent record) and appends to the `scope`. It also accepts optional overrides:
+Child loggers keep parent metadata and append scope information to every record.
 
 ```ts
 const debugChild = logger.child({ module: 'jobs' }, { level: 'debug' });
@@ -107,7 +123,7 @@ import { Logger } from 'lipra';
 const appLogger = new Logger({
   level: 'debug',
   format: 'pretty',
-  scope: 'api'
+  scope: 'api',
 });
 
 appLogger.info('Boot complete', { port: 3000 });
@@ -121,23 +137,28 @@ import { Logger } from 'lipra';
 const appLogger = new Logger({
   format: 'auto', // 'pretty' | 'json' | 'auto'
   scope: 'service-a',
-  level: 'info'
+  level: 'info',
 });
 ```
 
-### Format behavior
+### Output modes
 
-- `pretty`: always writes pretty (optionally colored) output
-- `json`: always writes JSON output
-- `auto`: uses pretty for TTY, JSON for non-TTY
+- `pretty`: always writes human-friendly terminal output
+- `json`: always writes JSON records
+- `auto`: uses pretty output for TTYs and JSON output elsewhere
 
-### Colors
+### Color behavior
 
-Pretty output colors the level tag: `trace`=gray, `debug`=cyan, `info`=green, `warn`=yellow, `error`=red, `fatal`=bold red. Colors are automatically disabled when stdout is not a TTY, when `NO_COLOR` is set, and force-enabled when `FORCE_COLOR` is set.
+`lipra` respects terminal capabilities and environment variables:
+
+- TTY output is colored automatically
+- non-TTY output is plain text or JSON
+- `NO_COLOR` disables color
+- `FORCE_COLOR` forces color output
 
 ## Transports
 
-A `Logger` writes every record to all of its configured `transports` (default: a single `ConsoleTransport`).
+A logger can emit each record to one or more transports.
 
 ```ts
 import { ConsoleTransport, FileTransport, Logger } from 'lipra';
@@ -153,7 +174,7 @@ appLogger.info('only goes to console');
 appLogger.error('goes to console and app.log');
 ```
 
-`StreamTransport` writes to any `NodeJS.WritableStream`:
+`StreamTransport` writes to any Node.js writable stream:
 
 ```ts
 import { StreamTransport } from 'lipra';
@@ -161,17 +182,9 @@ import { StreamTransport } from 'lipra';
 const appLogger = new Logger({ transports: [new StreamTransport(process.stderr)] });
 ```
 
-Each transport implements:
+Each transport supports an independent `minLevel` filter.
 
-```ts
-export interface Transport {
-  write(record: LogRecord): void;
-}
-```
-
-and may accept an independent `minLevel` filter, separate from the logger's own `level`.
-
-## Error handling
+## Structured errors
 
 ```ts
 try {
@@ -181,7 +194,12 @@ try {
 }
 ```
 
-This serializes the error into a structured object with `name`, `message`, and `stack`.
+`lipra` serializes errors into structured data with fields such as:
+
+- `name`
+- `message`
+- `stack`
+- `cause`
 
 ## Context helpers
 
@@ -193,7 +211,7 @@ runWithContext({ requestId: 'abc-123' }, () => {
 });
 ```
 
-`runWithContext` returns the callback's result and keeps the context scoped to that callback's asynchronous execution. `withContext` is a deprecated alias kept for backward compatibility.
+This keeps request-scoped metadata available across async work without leaking state globally.
 
 ## Redaction
 
@@ -215,18 +233,21 @@ redactValue(payload, ['users.0.password']);
 // redacts only the first entry
 ```
 
-`redactFields` returns a wrapped logger that auto-redacts the given paths on every call (including on `child()` loggers), so callers don't need to call `redactValue` manually each time:
+For convenience, `redactFields` wraps a logger and automatically redacts selected properties:
 
 ```ts
 import { logger, redactFields } from 'lipra';
 
 const safeLogger = redactFields(logger, ['password', 'user.ssn']);
-safeLogger.info('login attempt', { user: { ssn: '123-45-6789' }, password: 'secret' });
+safeLogger.info('login attempt', {
+  user: { ssn: '123-45-6789' },
+  password: 'secret',
+});
 ```
 
-## Spinner
+## Spinner helper
 
-`withSpinner` shows a terminal spinner while an async task runs (skipped off a TTY) and logs the outcome (`ok`/`fail`) and duration through the given logger:
+`withSpinner` shows a terminal spinner while an async task runs, then logs the final status and duration.
 
 ```ts
 import { logger, withSpinner } from 'lipra';
@@ -237,8 +258,6 @@ await withSpinner(logger, 'Migrating database', async () => {
 ```
 
 ## Framework integrations
-
-Framework integrations are published as separate subpath exports so the core package stays dependency-free.
 
 ### Express
 
@@ -251,7 +270,7 @@ const app = express();
 app.use(expressLogger(logger));
 ```
 
-Assigns/reads an `x-request-id` header, runs the request inside `runWithContext`, and logs request start/finish with method, path, status, and duration.
+This adds request lifecycle logging including request ID, method, path, status, and duration.
 
 ### Fastify
 
@@ -266,7 +285,7 @@ app.register(lipraFastifyPlugin(logger));
 
 ## Optional standalone transports package
 
-The `lipra-transports` package writes `LogRecord` values to stdout or any Node.js writable stream, independent of `Logger`. Use it when a service builds or forwards `LogRecord`s itself outside of a `Logger` instance.
+The `lipra-transports` package can write `LogRecord` values to stdout or any writable stream independently from `Logger`.
 
 ```bash
 npm install lipra lipra-transports
@@ -287,9 +306,9 @@ new ConsoleTransport({ format: 'auto' }).write(record);
 new StreamTransport(process.stdout).write(record);
 ```
 
-## TypeScript
+## TypeScript support
 
-lipra ships with TypeScript declarations and supports a strict TypeScript setup.
+`lipra` ships with TypeScript declarations and works well in strict TypeScript applications.
 
 ```ts
 import { logger, type LogRecord, type LogLevel } from 'lipra';
@@ -299,18 +318,40 @@ const record: LogRecord = {
   time: new Date().toISOString(),
   level,
   msg: 'warning',
-  fields: { ok: false }
+  fields: { ok: false },
 };
 
 logger.info(record.msg, record.fields);
 ```
 
+## Local development
+
+```bash
+git clone https://github.com/your-username/lipra.git
+cd lipra
+pnpm install
+pnpm --filter lipra test
+```
+
+Examples of useful commands:
+
+```bash
+pnpm --filter lipra build
+pnpm --filter lipra lint
+pnpm --filter lipra test
+```
+
 ## Roadmap
 
-- richer structured formatting controls
-- animated (non-stub) terminal spinner rendering
+- richer formatting controls
+- more advanced transport adapters
+- improved terminal rendering for long-running tasks
 
 ## License
 
-MIT
+This project is licensed under the MIT License.
+
+## Contributing
+
+Contributions, issues, and feature ideas are welcome. If you want to improve the project, feel free to open an issue or submit a pull request.
 
