@@ -1,6 +1,6 @@
 {
   "name": "lipra",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "A human-friendly structured logger for Node.js apps, CLIs, and services with pretty dev output and JSON production output.",
   "keywords": [
     "logger",
