@@ -1,6 +1,6 @@
 {
   "name": "lipra-transports",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "Optional console and stream transports for lipra.",
   "type": "module",
   "main": "./dist/index.js",
