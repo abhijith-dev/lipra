@@ -1,0 +1,10 @@
+node_modules
+.dist
+*.log
+dist
+.turbo
+coverage
+.DS_Store
+.npmrc
+./packages/core/dist
+./packages/core/node_modules
